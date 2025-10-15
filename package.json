@@ -1,0 +1,10 @@
+{
+  "name": "carrotbot",
+  "version": "1.0.0",
+  "description": "Telegram carrot game bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {}
+}
