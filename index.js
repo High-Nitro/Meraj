@@ -2,7 +2,7 @@ import fs from "fs";
 import fetch from "node-fetch";
 import readline from "readline";
 
-const TOKEN = "YOUR_BOT_TOKEN";
+const TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU";
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}`;
 const ADMIN_ID = "YOUR_ADMIN_ID"; // عدد یا رشته
 const BALANCE_FILE = "./balances.json";
