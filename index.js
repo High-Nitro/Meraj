@@ -25,7 +25,6 @@ function ensureUser(user) {
   if (!balances[uid]) {
     balances[uid] = {
       coins: 0,
-      country: null,
       username: user.username || "",
       name: user.first_name || "",
       pendingPayment: false
@@ -82,7 +81,6 @@ async function buyWireguard(user_id, chat_id, choiceIndex) {
   user.coins -= item.price;
   saveBalances(balances);
 
-  // پیام به ادمین برای ارسال فایل
   await sendMessage(ADMIN_ID, `💳 خرید وایرگارد:\nکاربر: ${user.name} (${user_id})\nپلن: ${item.title}\nلطفا فایل را ارسال کنید.`);
   await sendMessage(chat_id, `✅ خرید ثبت شد! لطفا منتظر ارسال فایل از ادمین باشید.`);
 }
@@ -100,7 +98,7 @@ async function startPayment(user_id, chat_id) {
 async function showProfile(user_id, chat_id) {
   const balances = loadBalances();
   const user = balances[user_id];
-  await sendMessage(chat_id, `👤 اطلاعات شما:\nنام: ${user.name}\nیوزرنیم: @${user.username}\nکشور: ${user.country || "ثبت نشده"}\n💰 موجودی: ${user.coins} تومان`);
+  await sendMessage(chat_id, `👤 اطلاعات شما:\nنام: ${user.name}\nیوزرنیم: @${user.username}\n💰 موجودی: ${user.coins} تومان`);
 }
 
 // ======= دریافت پیام‌ها =======
@@ -128,14 +126,6 @@ async function main() {
         const text = msg.text || "";
 
         const udata = ensureUser(user);
-
-        // ثبت کشور
-        if (!udata.country) {
-          udata.country = text;
-          saveBalances(loadBalances());
-          await sendMessage(chat_id, "✅ کشور ذخیره شد!", MAIN_KEYBOARD);
-          continue;
-        }
 
         // منوی اصلی
         if (text === "/start") {
@@ -173,7 +163,6 @@ async function main() {
         }
 
         if (udata.pendingPayment && msg.photo) {
-          // دریافت عکس رسید
           await sendMessage(ADMIN_ID, `💰 کاربر ${udata.name} (${user_id}) رسید شارژ را ارسال کرد.`);
           udata.pendingPayment = false;
           saveBalances(loadBalances());
