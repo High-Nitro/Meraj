@@ -2,7 +2,7 @@ const fs = require("fs");
 const fetch = require("node-fetch");
 
 // ======= تنظیمات =======
-const TOKEN = "توکن_ربات_تو";
+const TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU";
 const ADMIN_ID = 6823146420;
 const SUPPORT_ID = "@HavijSps";
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}`;
