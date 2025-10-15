@@ -1,8 +1,5 @@
-// index.js
-import fs from "fs";
-import fetch from "node-fetch";
-import FormData from "form-data";
-
+const fs = require("fs");
+const fetch = require("node-fetch");
 // ======= تنظیمات =======
 const TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU";
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}`;
