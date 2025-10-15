@@ -14,6 +14,21 @@ const BALANCE_FILE = "./balances.json";
 const PURCHASE_LOG_FILE = "./purchases.json";
 const RECEIPT_LOG_FILE = "./receipts.json";
 
+// ---------- مدیریت state کاربران ----------
+const userStates = new Map();
+
+function getUserState(userId) {
+  return userStates.get(String(userId)) || { state: 'main' };
+}
+
+function setUserState(userId, state) {
+  userStates.set(String(userId), { state, timestamp: Date.now() });
+}
+
+function clearUserState(userId) {
+  userStates.delete(String(userId));
+}
+
 // ---------- مدیریت داده ----------
 function loadBalances() {
   if (!fs.existsSync(BALANCE_FILE)) return {};
@@ -205,10 +220,12 @@ const WIRED_ITEMS = {
 
 // ---------- پنل ادمین ----------
 async function showAdminPanel(chatId) {
+  setUserState(chatId, 'admin_panel');
   await sendMessage(chatId, "🔧 پنل ادمین - گزینه مورد نظر را انتخاب کنید:", ADMIN_PANEL_KEYBOARD);
 }
 
 async function showUserStats(chatId) {
+  setUserState(chatId, 'admin_stats');
   const balances = loadBalances();
   const purchases = loadPurchases();
   const receipts = loadReceipts();
@@ -225,14 +242,15 @@ async function showUserStats(chatId) {
 🛒 تعداد کل خریدها: ${totalPurchases}
 📸 تعداد رسیدهای ارسال شده: ${totalReceipts}`;
 
-  await sendMessage(chatId, statsText, ADMIN_PANEL_KEYBOARD);
+  await sendMessage(chatId, statsText, BACK_KEYBOARD);
 }
 
 async function showPurchaseUsers(chatId) {
+  setUserState(chatId, 'admin_purchases');
   const purchases = loadPurchases();
   
   if (purchases.length === 0) {
-    await sendMessage(chatId, "📭 هیچ خریداری ثبت نشده است.", ADMIN_PANEL_KEYBOARD);
+    await sendMessage(chatId, "📭 هیچ خریداری ثبت نشده است.", BACK_KEYBOARD);
     return;
   }
   
@@ -245,14 +263,15 @@ async function showPurchaseUsers(chatId) {
     تاریخ: ${new Date(purchase.timestamp).toLocaleString('fa-IR')}\n\n`;
   });
   
-  await sendMessage(chatId, purchaseText, ADMIN_PANEL_KEYBOARD);
+  await sendMessage(chatId, purchaseText, BACK_KEYBOARD);
 }
 
 async function showReceiptUsers(chatId) {
+  setUserState(chatId, 'admin_receipts');
   const receipts = loadReceipts();
   
   if (receipts.length === 0) {
-    await sendMessage(chatId, "📭 هیچ رسیدی ارسال نشده است.", ADMIN_PANEL_KEYBOARD);
+    await sendMessage(chatId, "📭 هیچ رسیدی ارسال نشده است.", BACK_KEYBOARD);
     return;
   }
   
@@ -263,7 +282,12 @@ async function showReceiptUsers(chatId) {
     تاریخ: ${new Date(receipt.timestamp).toLocaleString('fa-IR')}\n\n`;
   });
   
-  await sendMessage(chatId, receiptText, ADMIN_PANEL_KEYBOARD);
+  await sendMessage(chatId, receiptText, BACK_KEYBOARD);
+}
+
+async function showFileSendPanel(chatId) {
+  setUserState(chatId, 'admin_file_send');
+  await sendMessage(chatId, "📤 برای ارسال فایل به کاربر از دستور زیر استفاده کنید:\n\n/file @username filename.txt\n/file 123456789 config.conf\n\nیا مستقیماً فایل را به این بات ارسال کنید.", BACK_KEYBOARD);
 }
 
 async function handleFileCommand(chatId, text) {
@@ -386,6 +410,7 @@ async function handleAddBalance(chatId, text) {
 
 // ---------- خرید وایرگارد ----------
 async function showWireguard(chatId, userId) {
+  setUserState(userId, 'wireguard_selection');
   const bal = getBalance(userId);
   let text = `🛒 خرید وایرگارد\nموجودی تو: *${bal}* تومان\n\nانتخاب کن:`;
   const keyboard = { keyboard: Object.keys(WIRED_ITEMS).map(i => [{ text: i }]).concat([[{ text: "⬅️ بازگشت" }]]), resize_keyboard: true };
@@ -401,16 +426,18 @@ async function handleWireguard(chatId, userId, user, itemName) {
   }
   addBalance(userId, -item.price);
   logPurchase(user, itemName, item.price);
-  await sendMessage(chatId, `✅ خرید موفق!\n${item.info}\n📤 لطفاً پس از ارسال رسید، منتظر فایل از ادمین باشید.`, BACK_KEYBOARD);
+  setUserState(userId, 'main');
+  await sendMessage(chatId, `✅ خرید موفق!\n${item.info}\n📤 لطفاً پس از ارسال رسید، منتظر فایل از ادمین باشید.`, MAIN_KEYBOARD);
   await sendMessage(ADMIN_ID, `🛒 کاربر @${user.username || user.first_name} خرید کرد:\n${item.info}\nمبلغ: ${item.price} تومان`);
 }
 
 // ---------- شارژ کیف‌پول ----------
 const CARD_NUMBER = "6219-8618-2900-7888";
 
-async function chargeWallet(chatId) {
+async function chargeWallet(chatId, userId) {
+  setUserState(userId, 'waiting_for_receipt');
   const cardMessage = `💳 برای شارژ کیف‌پول، مبلغ را واریز کن به کارت:\n\n*${CARD_NUMBER}*\n\n📸 سپس عکس رسید پرداخت رو ارسال کن.`;
-  await sendMessage(chatId, cardMessage);
+  await sendMessage(chatId, cardMessage, BACK_KEYBOARD);
 }
 
 async function handleReceipt(chatId, userId, user, photo) {
@@ -427,7 +454,8 @@ async function handleReceipt(chatId, userId, user, photo) {
     await sendMessage(ADMIN_ID, `📸 کاربر @${user.username || user.first_name || 'بدون نام'} رسید ارسال کرد اما خطا در نمایش عکس\n\n👤 آی‌دی کاربر: ${userId}`);
   }
   
-  await sendMessage(chatId, "✅ رسید دریافت شد، پس از تأیید توسط ادمین موجودی بروزرسانی می‌شود.");
+  setUserState(userId, 'main');
+  await sendMessage(chatId, "✅ رسید دریافت شد، پس از تأیید توسط ادمین موجودی بروزرسانی می‌شود.", MAIN_KEYBOARD);
 }
 
 // ---------- اطلاعات کاربری ----------
@@ -437,6 +465,37 @@ async function showUserInfo(chatId, userId) {
   if (!user) return;
   const text = `👤 اطلاعات کاربری\nنام: ${user.first_name}\nیوزرنیم: ${user.username}\nموجودی: ${user.coins} تومان`;
   await sendMessage(chatId, text, BACK_KEYBOARD);
+}
+
+// ---------- مدیریت state و بازگشت ----------
+async function handleBackCommand(chatId, userId) {
+  const userState = getUserState(userId);
+  
+  if (userId === ADMIN_ID) {
+    // مدیریت بازگشت برای ادمین
+    switch (userState.state) {
+      case 'admin_stats':
+      case 'admin_purchases':
+      case 'admin_receipts':
+      case 'admin_file_send':
+        await showAdminPanel(chatId);
+        break;
+      default:
+        await showAdminPanel(chatId);
+    }
+  } else {
+    // مدیریت بازگشت برای کاربران عادی
+    switch (userState.state) {
+      case 'wireguard_selection':
+      case 'waiting_for_receipt':
+        setUserState(userId, 'main');
+        await sendMessage(chatId, "🔙 بازگشتی به منوی اصلی", MAIN_KEYBOARD);
+        break;
+      default:
+        setUserState(userId, 'main');
+        await sendMessage(chatId, "🔙 بازگشتی به منوی اصلی", MAIN_KEYBOARD);
+    }
+  }
 }
 
 // ---------- حلقه اصلی ----------
@@ -475,21 +534,18 @@ async function main() {
         const text = msg.text || "";
 
         ensureUser(user);
+        const userState = getUserState(userId);
+
+        // دستور بازگشت
+        if (text === "⬅️ بازگشت") {
+          await handleBackCommand(chat_id, userId);
+          continue;
+        }
 
         // دستورات ادمین
         if (userId === ADMIN_ID) {
-          if (text === "/admin") {
+          if (text === "/admin" || (userState.state.startsWith('admin_') && text === "⬅️ بازگشت")) {
             await showAdminPanel(chat_id);
-            continue;
-          }
-          
-          if (text.startsWith("/file")) {
-            await handleFileCommand(chat_id, text);
-            continue;
-          }
-          
-          if (text.startsWith("/add")) {
-            await handleAddBalance(chat_id, text);
             continue;
           }
           
@@ -509,7 +565,17 @@ async function main() {
           }
           
           if (text === "📤 ارسال فایل به کاربر") {
-            await sendMessage(chat_id, "📤 برای ارسال فایل به کاربر از دستور زیر استفاده کنید:\n\n/file @username filename.txt\n/file 123456789 config.conf", BACK_KEYBOARD);
+            await showFileSendPanel(chat_id);
+            continue;
+          }
+          
+          if (text.startsWith("/file")) {
+            await handleFileCommand(chat_id, text);
+            continue;
+          }
+          
+          if (text.startsWith("/add")) {
+            await handleAddBalance(chat_id, text);
             continue;
           }
 
@@ -528,6 +594,7 @@ async function main() {
         }
 
         if (text === "/start") {
+          setUserState(userId, 'main');
           await sendMessage(chat_id, "🥕 خوش آمدید! منوی اصلی:", MAIN_KEYBOARD);
           continue;
         }
@@ -537,17 +604,17 @@ async function main() {
           continue;
         }
 
-        if (WIRED_ITEMS[text]) {
+        if (WIRED_ITEMS[text] && userState.state === 'wireguard_selection') {
           await handleWireguard(chat_id, userId, user, text);
           continue;
         }
 
         if (text === "💳 شارژ کیف‌پول") {
-          await chargeWallet(chat_id);
+          await chargeWallet(chat_id, userId);
           continue;
         }
 
-        if (msg.photo) {
+        if (msg.photo && userState.state === 'waiting_for_receipt') {
           await handleReceipt(chat_id, userId, user, msg.photo);
           continue;
         }
@@ -559,15 +626,6 @@ async function main() {
 
         if (text === "📞 پشتیبانی") {
           await sendMessage(chat_id, "📩 پشتیبانی: @HavijSps", BACK_KEYBOARD);
-          continue;
-        }
-
-        if (text === "⬅️ بازگشت") {
-          if (userId === ADMIN_ID) {
-            await showAdminPanel(chat_id);
-          } else {
-            await sendMessage(chat_id, "🔙 بازگشتی به منوی اصلی", MAIN_KEYBOARD);
-          }
           continue;
         }
 
