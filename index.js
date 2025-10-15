@@ -4,7 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const port = process.env.PORT || 4000 
+const port = process.env.PORT || 19099 
 
 const TOKEN = "PUT_YOUR_TOKEN_HERE"; // <-- توکن ربات
 const ADMIN_ID = 6823146420;        // <-- شناسه ادمین عددی
