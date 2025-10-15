@@ -1,8 +1,10 @@
+
 // index.js (Node.js, CommonJS)
 // Requires Node 18+ (global fetch)
 
 const fs = require("fs");
 const path = require("path");
+const port = process.env.PORT || 4000 
 
 const TOKEN = "PUT_YOUR_TOKEN_HERE"; // <-- توکن ربات
 const ADMIN_ID = 6823146420;        // <-- شناسه ادمین عددی
