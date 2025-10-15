@@ -4,7 +4,7 @@ import readline from "readline";
 
 const TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU";
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}`;
-const ADMIN_ID = "YOUR_ADMIN_ID"; // عدد یا رشته
+const ADMIN_ID = "6823146420"; // عدد یا رشته
 const BALANCE_FILE = "./balances.json";
 const PURCHASE_LOG_FILE = "./purchases.json";
 const RECEIPT_LOG_FILE = "./receipts.json";
