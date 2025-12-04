@@ -13,7 +13,7 @@ except ImportError:
 TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU"
 
 async def start(update, context):
-    await update.message.reply_text("سلام!")
+    await update.message.reply_text("Hiw")
 
 app = Application.builder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
