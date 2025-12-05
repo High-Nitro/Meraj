@@ -25,8 +25,8 @@ import logging
 import re
 
 # ------------------ CONFIG ------------------
-TOKEN = "YOUR_TOKEN_HERE"
-ADMIN_ID = 123456789
+TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU"
+ADMIN_ID = 6823146420
 TELEGRAM_CHANNEL = "@PolinO2YT"  # your telegram channel username (with @)
 YOUTUBE_CHANNEL_URL = "https://youtube.com/@polin02yt?si=1ytAdE0ADvFAJ23i"
 # --------------------------------------------
