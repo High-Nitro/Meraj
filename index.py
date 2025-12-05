@@ -24,8 +24,8 @@ except ModuleNotFoundError:
 import logging
 import re
 
-TOKEN = "YOUR_TOKEN_HERE"   # ← Replace
-ADMIN_ID = 123456789         # ← Replace
+TOKEN = "7346348218:AAGU8aUR-07GtJUZxw6JQ2X2Os9Jm_ZhGYU"   # ← Replace
+ADMIN_ID = 6823146420         # ← Replace
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
