@@ -141,16 +141,29 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         user_data.pop(user_id, None)
 
-    # رسیدها
+    # رسیدها — همراه با ارسال آیدی عددی و یوزرنیم
     elif user_mode in ["awaiting_wireguard_payment", "awaiting_filimo_payment"]:
         if update.message.photo:
+
             service = "وایرگارد" if user_mode == "awaiting_wireguard_payment" else "فیلیمو"
-            await context.bot.send_message(ADMIN_ID, f"📥 رسید جدید برای {service}")
+
+            user = update.effective_user
+            username = f"@{user.username}" if user.username else "❌ بدون یوزرنیم"
+
+            await context.bot.send_message(
+                ADMIN_ID,
+                f"📥 رسید جدید برای {service}\n"
+                f"👤 نام: {user.first_name}\n"
+                f"🆔 آیدی عددی: {user.id}\n"
+                f"🔗 یوزرنیم: {username}"
+            )
+
             await context.bot.send_photo(ADMIN_ID, update.message.photo[-1].file_id)
 
             await update.message.reply_text("✅ رسید دریافت شد.")
             await start(update, context)
             user_data.pop(user_id, None)
+
         else:
             await update.message.reply_text("❌ لطفاً عکس رسید ارسال کنید.")
 
